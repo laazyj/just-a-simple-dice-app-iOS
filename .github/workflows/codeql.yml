@@ -1,0 +1,48 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '30 5 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze Swift
+    runs-on: macos-15
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: swift
+          build-mode: manual
+
+      # Swift analysis traces a real build; build for the generic simulator
+      # so no specific device needs to exist on the runner.
+      - name: Build
+        run: |
+          xcodebuild build \
+            -project JustASimpleDice.xcodeproj \
+            -scheme JustASimpleDice \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO
+
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:swift"
