@@ -29,6 +29,16 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D1CE00000000000000000403"
+               BuildableName = "JustASimpleDiceTests.xctest"
+               BlueprintName = "JustASimpleDiceTests"
+               ReferencedContainer = "container:JustASimpleDice.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
