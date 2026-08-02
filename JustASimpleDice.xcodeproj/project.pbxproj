@@ -16,6 +16,7 @@
 		D1CE00000000000000000107 /* ShakeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1CE00000000000000000009 /* ShakeDetector.swift */; };
 		D1CE00000000000000000108 /* RollUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1CE0000000000000000000A /* RollUITests.swift */; };
 		D1CE00000000000000000109 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D1CE0000000000000000000C /* PrivacyInfo.xcprivacy */; };
+		D1CE0000000000000000010A /* FeltTexture.metal in Sources */ = {isa = PBXBuildFile; fileRef = D1CE0000000000000000000D /* FeltTexture.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +49,7 @@
 		D1CE0000000000000000000A /* RollUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RollUITests.swift; sourceTree = "<group>"; };
 		D1CE0000000000000000000B /* JustASimpleDiceUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JustASimpleDiceUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1CE0000000000000000000C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D1CE0000000000000000000D /* FeltTexture.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = FeltTexture.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +95,7 @@
 				D1CE00000000000000000005 /* DieView.swift */,
 				D1CE00000000000000000006 /* DiceRoller.swift */,
 				D1CE00000000000000000009 /* ShakeDetector.swift */,
+				D1CE0000000000000000000D /* FeltTexture.metal */,
 				D1CE00000000000000000003 /* Assets.xcassets */,
 				D1CE0000000000000000000C /* PrivacyInfo.xcprivacy */,
 			);
@@ -255,6 +258,7 @@
 				D1CE00000000000000000104 /* DieView.swift in Sources */,
 				D1CE00000000000000000105 /* DiceRoller.swift in Sources */,
 				D1CE00000000000000000107 /* ShakeDetector.swift in Sources */,
+				D1CE0000000000000000010A /* FeltTexture.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -8,6 +8,7 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             Color("FeltGreen")
+                .colorEffect(ShaderLibrary.feltTexture(.float(2)))
                 .ignoresSafeArea()
             VStack {
                 Spacer()

@@ -6,13 +6,45 @@ struct DieView: View {
     var body: some View {
         GeometryReader { geometry in
             let side = min(geometry.size.width, geometry.size.height)
+            let face = RoundedRectangle(cornerRadius: side * 0.18, style: .continuous)
             ZStack {
-                RoundedRectangle(cornerRadius: side * 0.18, style: .continuous)
-                    .fill(.white)
+                face
+                    .fill(
+                        LinearGradient(
+                            colors: [.white, Color(white: 0.96), Color(white: 0.88)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .shadow(color: .black.opacity(0.35), radius: side * 0.06, y: side * 0.04)
+                face
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [.white.opacity(0.95), .black.opacity(0.12)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: side * 0.02
+                    )
+                face
+                    .fill(
+                        RadialGradient(
+                            colors: [.white.opacity(0.7), .clear],
+                            center: UnitPoint(x: 0.26, y: 0.2),
+                            startRadius: 0,
+                            endRadius: side * 0.5
+                        )
+                    )
                 ForEach(Array(Self.pipPositions(for: value).enumerated()), id: \.offset) { _, pip in
                     Circle()
-                        .fill(.black)
+                        .fill(
+                            RadialGradient(
+                                colors: [Color(white: 0.25), .black],
+                                center: UnitPoint(x: 0.38, y: 0.32),
+                                startRadius: 0,
+                                endRadius: side * 0.10
+                            )
+                        )
                         .frame(width: side * 0.16, height: side * 0.16)
                         .position(x: pip.x * side, y: pip.y * side)
                 }
