@@ -15,6 +15,7 @@
 		D1CE00000000000000000106 /* DiceRollerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1CE00000000000000000007 /* DiceRollerTests.swift */; };
 		D1CE00000000000000000107 /* ShakeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1CE00000000000000000009 /* ShakeDetector.swift */; };
 		D1CE00000000000000000108 /* RollUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1CE0000000000000000000A /* RollUITests.swift */; };
+		D1CE00000000000000000109 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D1CE0000000000000000000C /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +47,7 @@
 		D1CE00000000000000000009 /* ShakeDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShakeDetector.swift; sourceTree = "<group>"; };
 		D1CE0000000000000000000A /* RollUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RollUITests.swift; sourceTree = "<group>"; };
 		D1CE0000000000000000000B /* JustASimpleDiceUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JustASimpleDiceUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D1CE0000000000000000000C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +94,7 @@
 				D1CE00000000000000000006 /* DiceRoller.swift */,
 				D1CE00000000000000000009 /* ShakeDetector.swift */,
 				D1CE00000000000000000003 /* Assets.xcassets */,
+				D1CE0000000000000000000C /* PrivacyInfo.xcprivacy */,
 			);
 			path = JustASimpleDice;
 			sourceTree = "<group>";
@@ -222,6 +225,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D1CE00000000000000000103 /* Assets.xcassets in Resources */,
+				D1CE00000000000000000109 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
