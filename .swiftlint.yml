@@ -1,0 +1,9 @@
+included:
+  - JustASimpleDice
+  - JustASimpleDiceTests
+  - JustASimpleDiceUITests
+
+disabled_rules:
+  # Trailing commas in multi-line collections are idiomatic modern Swift
+  # and make diffs cleaner; SwiftLint's default forbids them.
+  - trailing_comma
