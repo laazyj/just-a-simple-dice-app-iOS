@@ -1,4 +1,4 @@
-# Just a Simple Dice
+# JASDA - Just A Simple Dice App
 
 [![CI](https://github.com/laazyj/just-a-simple-dice-app-iOS/actions/workflows/ci.yml/badge.svg)](https://github.com/laazyj/just-a-simple-dice-app-iOS/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -45,6 +45,9 @@ artifact.
 ## Shipping your own build
 
 1. Set your bundle identifier and signing team in Xcode.
+   The home-screen name is **JASDA**; use the full
+   "JASDA - Just A Simple Dice App" (exactly 30 characters) as the
+   App Store Connect app name.
 2. Product → Archive → Distribute App.
 3. The App Store privacy questionnaire answers are all "No" —
    the app collects nothing.
