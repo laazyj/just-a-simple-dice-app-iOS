@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and screenshot
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      SIMULATOR: iPhone 16
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build for simulator
+        run: |
+          xcodebuild build \
+            -project JustASimpleDice.xcodeproj \
+            -scheme JustASimpleDice \
+            -destination "platform=iOS Simulator,name=$SIMULATOR" \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Capture simulator screenshot
+        run: |
+          BUNDLE_ID=$(xcodebuild -showBuildSettings \
+            -project JustASimpleDice.xcodeproj \
+            -scheme JustASimpleDice \
+            -destination "platform=iOS Simulator,name=$SIMULATOR" 2>/dev/null \
+            | awk '/PRODUCT_BUNDLE_IDENTIFIER/ { print $3; exit }')
+          xcrun simctl bootstatus "$SIMULATOR" -b
+          xcrun simctl install "$SIMULATOR" \
+            build/Build/Products/Debug-iphonesimulator/JustASimpleDice.app
+          xcrun simctl launch "$SIMULATOR" "$BUNDLE_ID"
+          sleep 8
+          xcrun simctl io "$SIMULATOR" screenshot screenshot.png
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: simulator-screenshot
+          path: screenshot.png
