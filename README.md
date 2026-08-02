@@ -11,13 +11,14 @@ No dependencies, no package resolution, nothing to install.
 
 ## Testing
 
-Tests arrive with the dice logic. Until then, CI builds the app on every
-push and pull request, and uploads a simulator screenshot as a build
-artifact:
+`⌘U` in Xcode, or:
 
 ```sh
-xcodebuild build \
+xcodebuild test \
   -project JustASimpleDice.xcodeproj \
   -scheme JustASimpleDice \
   -destination 'platform=iOS Simulator,name=iPhone 16'
 ```
+
+CI runs the same suite on every push and pull request, and uploads a
+simulator screenshot as a build artifact.
