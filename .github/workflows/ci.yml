@@ -14,17 +14,50 @@ jobs:
     name: Test and screenshot
     runs-on: macos-15
     timeout-minutes: 30
-    env:
-      SIMULATOR: iPhone 16
     steps:
       - uses: actions/checkout@v4
+
+      # Runner images vary in which simulators they ship, so pick whatever
+      # iPhone is available (newest runtime) instead of hardcoding a name.
+      - name: Select an iPhone simulator
+        run: |
+          cat > /tmp/pick_sim.py <<'EOF'
+          import json
+          import subprocess
+
+          out = subprocess.run(
+              ["xcrun", "simctl", "list", "devices", "available", "--json"],
+              capture_output=True, text=True, check=True,
+          ).stdout
+          data = json.loads(out)["devices"]
+          phones = [
+              (runtime, device)
+              for runtime, devices in sorted(data.items())
+              for device in devices
+              if device.get("isAvailable") and "iPhone" in device["name"]
+          ]
+          print(phones[-1][1]["udid"] if phones else "")
+          EOF
+          UDID=$(python3 /tmp/pick_sim.py)
+          if [ -z "$UDID" ]; then
+            echo "No iPhone simulator on this runner; downloading the iOS platform..."
+            xcodebuild -downloadPlatform iOS
+            UDID=$(python3 /tmp/pick_sim.py)
+          fi
+          if [ -z "$UDID" ]; then
+            echo "Still no iPhone simulator available. simctl inventory:"
+            xcrun simctl list
+            exit 1
+          fi
+          echo "Using simulator $UDID"
+          echo "SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
 
       - name: Run tests
         run: |
           xcodebuild test \
             -project JustASimpleDice.xcodeproj \
             -scheme JustASimpleDice \
-            -destination "platform=iOS Simulator,name=$SIMULATOR" \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO
 
@@ -33,14 +66,14 @@ jobs:
           BUNDLE_ID=$(xcodebuild -showBuildSettings \
             -project JustASimpleDice.xcodeproj \
             -scheme JustASimpleDice \
-            -destination "platform=iOS Simulator,name=$SIMULATOR" 2>/dev/null \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" 2>/dev/null \
             | awk '/PRODUCT_BUNDLE_IDENTIFIER/ { print $3; exit }')
-          xcrun simctl bootstatus "$SIMULATOR" -b
-          xcrun simctl install "$SIMULATOR" \
+          xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+          xcrun simctl install "$SIMULATOR_UDID" \
             build/Build/Products/Debug-iphonesimulator/JustASimpleDice.app
-          xcrun simctl launch "$SIMULATOR" "$BUNDLE_ID"
+          xcrun simctl launch "$SIMULATOR_UDID" "$BUNDLE_ID"
           sleep 8
-          xcrun simctl io "$SIMULATOR" screenshot screenshot.png
+          xcrun simctl io "$SIMULATOR_UDID" screenshot screenshot.png
 
       - uses: actions/upload-artifact@v4
         with:

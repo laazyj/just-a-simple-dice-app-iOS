@@ -39,6 +39,16 @@
                ReferencedContainer = "container:JustASimpleDice.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D1CE00000000000000000404"
+               BuildableName = "JustASimpleDiceUITests.xctest"
+               BlueprintName = "JustASimpleDiceUITests"
+               ReferencedContainer = "container:JustASimpleDice.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
