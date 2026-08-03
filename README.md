@@ -58,6 +58,11 @@ This project is intentionally finished and doesn't accept pull requests —
 adding features is how apps like this go bad. It's MIT licensed, so fork
 away and make it your own.
 
+## Privacy
+
+JASDA collects nothing — see [PRIVACY.md](PRIVACY.md). Security reports:
+see [SECURITY.md](SECURITY.md).
+
 ## License
 
 [MIT](LICENSE) — free to use, copy, and modify.
