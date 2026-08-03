@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 
 struct ContentView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var roller = DiceRoller()
     @State private var spinDegrees = 0.0
 
@@ -18,7 +19,7 @@ struct ContentView: View {
                         .degrees(spinDegrees),
                         axis: (x: 0.4, y: 1.0, z: 0.3)
                     )
-                    .scaleEffect(roller.isRolling ? 1.1 : 1.0)
+                    .scaleEffect(roller.isRolling && !reduceMotion ? 1.1 : 1.0)
                     .animation(.spring(duration: 0.3), value: roller.isRolling)
                     .accessibilityElement()
                     .accessibilityLabel("Die")
@@ -51,8 +52,12 @@ struct ContentView: View {
 
     private func roll() {
         guard !roller.isRolling else { return }
-        withAnimation(.easeOut(duration: 0.9)) {
-            spinDegrees += 720
+        // Vestibular-friendly: with Reduce Motion on, skip the 3D spin and
+        // scale bounce; the face shuffle, haptic, and announcement remain.
+        if !reduceMotion {
+            withAnimation(.easeOut(duration: 0.9)) {
+                spinDegrees += 720
+            }
         }
         Task {
             await roller.roll()
