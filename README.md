@@ -2,8 +2,11 @@
 
 [![CI](https://github.com/laazyj/just-a-simple-dice-app-iOS/actions/workflows/ci.yml/badge.svg)](https://github.com/laazyj/just-a-simple-dice-app-iOS/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![App Store](https://img.shields.io/badge/App_Store-Download-0D96F6?logo=apple&logoColor=white)](https://apps.apple.com/app/jasda-just-a-simple-dice-app/id6797626109)
 
 One die. Tap **ROLL** or shake your phone. That's it.
+
+**[Download JASDA free on the App Store](https://apps.apple.com/app/jasda-just-a-simple-dice-app/id6797626109)** — no ads, no tracking, no nonsense.
 
 <img src="docs/screenshots/pr2-die.png" alt="A white die showing five on a felt-green background, above a ROLL button" width="300">
 
