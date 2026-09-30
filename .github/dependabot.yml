@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Wait a week before proposing a new release, so compromised or broken
+    # versions are more likely to be yanked before we adopt them.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "ci"
