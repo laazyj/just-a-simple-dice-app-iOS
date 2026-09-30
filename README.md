@@ -42,8 +42,9 @@ xcodebuild test \
 ```
 
 CI runs the same suite on every push and pull request — plus SwiftLint,
-actionlint, and gitleaks — and uploads a simulator screenshot as a build
-artifact.
+actionlint, gitleaks, and zizmor — and uploads a simulator screenshot as a
+build artifact. See [CONTRIBUTING.md](CONTRIBUTING.md) to run the security
+checks locally.
 
 ## Shipping your own build
 

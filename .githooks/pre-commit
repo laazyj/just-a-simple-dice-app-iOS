@@ -1,0 +1,19 @@
+#!/bin/sh
+# Optional local security checks; see CONTRIBUTING.md.
+# Enable with: git config core.hooksPath .githooks
+set -e
+
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks git --pre-commit --staged --redact --no-banner
+else
+  echo "pre-commit: gitleaks not installed, skipping secret scan" >&2
+fi
+
+# Only audit when workflow or Dependabot files are part of the commit.
+if git diff --cached --quiet -- .github; then
+  :
+elif command -v zizmor >/dev/null 2>&1; then
+  zizmor --quiet .github
+else
+  echo "pre-commit: zizmor not installed, skipping workflow audit" >&2
+fi
