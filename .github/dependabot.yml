@@ -8,5 +8,23 @@ updates:
     # versions are more likely to be yanked before we adopt them.
     cooldown:
       default-days: 7
+    # One PR a week instead of one per action. This also keeps paired
+    # actions (codeql-action/init and /analyze) on the same version.
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci"
+
+  # CI's linter images, pinned in .github/linters/*.Dockerfile.
+  - package-ecosystem: "docker"
+    directory: "/.github/linters"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    groups:
+      linters:
+        patterns: ["*"]
     commit-message:
       prefix: "ci"

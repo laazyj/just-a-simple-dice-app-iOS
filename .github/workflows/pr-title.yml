@@ -1,0 +1,25 @@
+name: PR title
+
+# PRs are squash-merged, so the title becomes the commit on main, and
+# release-please reads those commits to pick the next version and write
+# the changelog.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  conventional:
+    name: Conventional PR title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the title follows Conventional Commits
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9._/-]+\))?!?: .+'
+          if [[ ! "$TITLE" =~ $pattern ]]; then
+            echo "::error::PR title must follow Conventional Commits, e.g. 'feat: roll two dice' or 'fix(ui): ...'. Got: $TITLE"
+            exit 1
+          fi

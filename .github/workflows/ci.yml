@@ -18,13 +18,15 @@ jobs:
   swiftlint:
     name: SwiftLint
     runs-on: ubuntu-latest
-    container: ghcr.io/realm/swiftlint:0.57.0
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
       - name: Lint Swift sources
-        run: swiftlint --strict --reporter github-actions-logging
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work --entrypoint swiftlint \
+            "$(awk '/^FROM/ { print $2 }' .github/linters/swiftlint.Dockerfile)" \
+            --strict --reporter github-actions-logging
 
   actionlint:
     name: Lint workflows
@@ -34,9 +36,10 @@ jobs:
         with:
           persist-credentials: false
       - name: Lint GitHub Actions workflows
-        uses: docker://rhysd/actionlint:1.7.12
-        with:
-          args: -color
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work \
+            "$(awk '/^FROM/ { print $2 }' .github/linters/actionlint.Dockerfile)" \
+            -color
 
   zizmor:
     name: Audit workflows
