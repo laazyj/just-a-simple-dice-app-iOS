@@ -4,8 +4,25 @@ import Observation
 @MainActor
 @Observable
 final class DiceRoller {
-    private(set) var value = 1
+    static let dieCounts = 1...2
+
+    /// The face showing on each die, one entry per die.
+    private(set) var faces = [1]
     private(set) var isRolling = false
+
+    /// How many dice are on the table, clamped to `dieCounts`. Changing it
+    /// keeps the faces already showing; an added die shows a random face.
+    /// Ignored mid-roll.
+    var dieCount: Int {
+        get { faces.count }
+        set {
+            let count = min(max(newValue, Self.dieCounts.lowerBound), Self.dieCounts.upperBound)
+            guard !isRolling, count != faces.count else { return }
+            faces = (0..<count).map { $0 < faces.count ? faces[$0] : randomFace() }
+        }
+    }
+
+    var total: Int { faces.reduce(0, +) }
 
     private let tickDuration: Duration
     private let tickCount: Int
@@ -25,10 +42,10 @@ final class DiceRoller {
         guard !isRolling else { return }
         isRolling = true
         for _ in 0..<tickCount {
-            value = randomFace()
+            faces = faces.map { _ in randomFace() }
             try? await Task.sleep(for: tickDuration)
         }
-        value = randomFace()
+        faces = faces.map { _ in randomFace() }
         isRolling = false
     }
 }

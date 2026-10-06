@@ -6,39 +6,89 @@ final class RollUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    /// Launches with the dice count forced through the argument domain, which
+    /// overrides the saved preference without changing it.
     @MainActor
-    func testRollButtonRollsAndSettlesOnAValidFace() throws {
+    private func launch(dieCount: Int) -> XCUIApplication {
         let app = XCUIApplication()
+        app.launchArguments = ["-dieCount", "\(dieCount)"]
         app.launch()
+        XCTAssertTrue(app.buttons["rollButton"].waitForExistence(timeout: 15))
+        return app
+    }
 
-        let die = app.otherElements["die"]
-        XCTAssertTrue(die.waitForExistence(timeout: 15))
-
+    /// Taps ROLL and waits for the tumble to finish.
+    @MainActor
+    private func roll(_ app: XCUIApplication) {
         let rollButton = app.buttons["rollButton"]
-        XCTAssertTrue(rollButton.exists)
         XCTAssertTrue(rollButton.isEnabled)
-
         rollButton.tap()
 
         // The button disables during the tumble; wait for it to come back.
         let reEnabled = NSPredicate(format: "isEnabled == true")
         expectation(for: reEnabled, evaluatedWith: rollButton)
         waitForExpectations(timeout: 10)
+    }
 
-        let face = die.value as? String
-        XCTAssertNotNil(face)
+    @MainActor
+    private func face(of die: XCUIElement) -> Int? {
+        (die.value as? String).flatMap(Int.init)
+    }
+
+    @MainActor
+    func testRollButtonRollsAndSettlesOnAValidFace() throws {
+        let app = launch(dieCount: 1)
+        XCTAssertFalse(app.otherElements["die2"].exists)
+        XCTAssertFalse(app.otherElements["total"].exists)
+
+        roll(app)
+
+        let shown = face(of: app.otherElements["die1"])
         XCTAssertTrue(
-            (1...6).map(String.init).contains(face ?? ""),
-            "Die should show a face between 1 and 6, got \(face ?? "nil")"
+            (1...6).contains(shown ?? 0),
+            "Die should show a face from 1 to 6, got \(String(describing: shown))"
         )
     }
 
     @MainActor
-    func testPassesAccessibilityAudit() throws {
+    func testTwoDiceRollAndShowTheirTotal() throws {
+        let app = launch(dieCount: 2)
+
+        roll(app)
+
+        let first = try XCTUnwrap(face(of: app.otherElements["die1"]))
+        let second = try XCTUnwrap(face(of: app.otherElements["die2"]))
+        XCTAssertTrue((1...6).contains(first) && (1...6).contains(second), "Faces out of range: \(first), \(second)")
+        XCTAssertEqual(face(of: app.otherElements["total"]), first + second)
+    }
+
+    @MainActor
+    func testDieCountChoiceIsRemembered() throws {
         let app = XCUIApplication()
         app.launch()
-        XCTAssertTrue(app.buttons["rollButton"].waitForExistence(timeout: 15))
+        let twoDice = app.buttons["dieCount2"]
+        XCTAssertTrue(twoDice.waitForExistence(timeout: 15))
+        twoDice.tap()
+        XCTAssertTrue(app.otherElements["die2"].waitForExistence(timeout: 5))
 
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(app.otherElements["die2"].waitForExistence(timeout: 15))
+    }
+
+    @MainActor
+    func testPassesAccessibilityAudit() throws {
+        let app = launch(dieCount: 2)
+        try audit(app)
+
+        // Switching in-app (rather than relaunching) leaves the saved choice alone.
+        app.buttons["dieCount1"].tap()
+        XCTAssertTrue(app.otherElements["die2"].waitForNonExistence(timeout: 5))
+        try audit(app)
+    }
+
+    @MainActor
+    private func audit(_ app: XCUIApplication) throws {
         // Every iOS audit type as of Xcode 26, one at a time: each call has
         // its own fixed time limit, which a single all-types audit can
         // overrun on a slow CI simulator ("Audit failed to complete in time").
