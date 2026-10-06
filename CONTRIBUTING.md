@@ -84,25 +84,6 @@ latest one in App Store Connect plus one, and the TestFlight "What to Test"
 note is the commit's subject line. Signing is cloud-managed, so no
 certificates or provisioning profiles are stored anywhere.
 
-One-time setup (until then the job is skipped):
-
-1. **App Store Connect → Users and Access → Integrations → Team Keys**:
-   generate a key with the **Admin** role (cloud-managed distribution
-   signing needs it) and download the `.p8`.
-2. **GitHub → Settings → Environments**: create `testflight`, limit
-   deployment branches to `main`, and add the secrets:
-   - `ASC_KEY_ID`: the key ID
-   - `ASC_ISSUER_ID`: the issuer ID shown above the keys list
-   - `ASC_KEY_P8`: the full contents of the `.p8` file
-3. **GitHub → Settings → Secrets and variables → Actions → Variables**:
-   add the repository variable `TESTFLIGHT_ENABLED` = `true`.
-4. **TestFlight → Internal Testing**: create a group with automatic
-   distribution enabled, so new builds reach testers without a click.
-
-To run a lane locally, set `ASC_KEY_ID`, `ASC_ISSUER_ID` and
-`ASC_KEY_PATH` (path to the `.p8`), then `bundle install` and
-`bundle exec fastlane beta`.
-
 ## Releasing to the App Store
 
 [release-please](https://github.com/googleapis/release-please) keeps a

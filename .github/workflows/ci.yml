@@ -166,8 +166,8 @@ jobs:
   testflight:
     name: Upload to TestFlight
     needs: [swiftlint, actionlint, zizmor, gitleaks, build]
-    # TESTFLIGHT_ENABLED is a repository variable, set once the App Store
-    # Connect secrets exist (see CONTRIBUTING.md).
+    # TESTFLIGHT_ENABLED is a repository variable, set once the testflight
+    # environment has its App Store Connect secrets.
     if: >-
       github.event_name == 'push' && github.ref == 'refs/heads/main'
       && vars.TESTFLIGHT_ENABLED == 'true'
