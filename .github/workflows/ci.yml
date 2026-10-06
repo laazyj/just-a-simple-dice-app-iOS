@@ -34,7 +34,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Lint GitHub Actions workflows
-        uses: docker://rhysd/actionlint:1.7.7
+        uses: docker://rhysd/actionlint:1.7.12
         with:
           args: -color
 
@@ -68,12 +68,18 @@ jobs:
 
   build:
     name: Test and screenshot
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
+
+      # The runner's default Xcode changes with image updates; build with the
+      # version pinned in .xcode-version instead.
+      - name: Select pinned Xcode
+        run: |
+          echo "DEVELOPER_DIR=/Applications/Xcode_$(cat .xcode-version).app/Contents/Developer" >> "$GITHUB_ENV"
 
       # Runner images vary in which simulators they ship, so pick whatever
       # iPhone is available (newest runtime) instead of hardcoding a name.
