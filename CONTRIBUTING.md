@@ -36,9 +36,26 @@ zizmor runs some audits online; set `GH_TOKEN` (e.g.
 
 ## Dependencies
 
-Dependabot keeps the GitHub Actions up to date, with a cooldown (see
-`.github/dependabot.yml`). Actions are pinned to full commit SHAs with the
-version in a trailing comment; Dependabot updates both.
+Dependabot keeps CI's dependencies up to date, with a one-week cooldown
+and one grouped PR per ecosystem per week (see `.github/dependabot.yml`):
+
+- **GitHub Actions** are pinned to full commit SHAs with the version in a
+  trailing comment; Dependabot updates both.
+- **SwiftLint's image** is pinned by tag and digest in
+  `.github/linters/swiftlint.Dockerfile`. CI runs the image named on the
+  `FROM` line; the file exists so Dependabot's docker ecosystem can see it.
+  Match your local `swiftlint` to that version.
+- **actionlint** runs as the `kjanat/actionlint` action, so Dependabot
+  updates it with the other actions.
+
+The app itself has no dependencies.
+
+## Pull requests
+
+PRs are squash-merged, and the title must follow
+[Conventional Commits](https://www.conventionalcommits.org) (`feat:`,
+`fix:`, `ci:`, ...) — the PR title check enforces it. Release tooling reads
+those titles to pick the next version and write the changelog.
 
 ## Toolchain and versioning
 
