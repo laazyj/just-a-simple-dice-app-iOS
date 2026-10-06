@@ -9,12 +9,12 @@ final class DiceRoller {
 
     private let tickDuration: Duration
     private let tickCount: Int
-    private let randomFace: () -> Int
+    private let randomFace: @MainActor () -> Int
 
     init(
         tickDuration: Duration = .milliseconds(80),
         tickCount: Int = 10,
-        randomFace: @escaping () -> Int = { Int.random(in: 1...6) }
+        randomFace: @escaping @MainActor () -> Int = { Int.random(in: 1...6) }
     ) {
         self.tickDuration = tickDuration
         self.tickCount = tickCount

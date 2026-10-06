@@ -16,7 +16,7 @@ extension UIWindow {
 }
 
 private struct ShakeViewModifier: ViewModifier {
-    let action: () -> Void
+    let action: @MainActor () -> Void
 
     func body(content: Content) -> some View {
         content.onReceive(
@@ -28,7 +28,7 @@ private struct ShakeViewModifier: ViewModifier {
 }
 
 extension View {
-    func onShake(perform action: @escaping () -> Void) -> some View {
+    func onShake(perform action: @escaping @MainActor () -> Void) -> some View {
         modifier(ShakeViewModifier(action: action))
     }
 }
