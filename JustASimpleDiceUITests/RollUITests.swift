@@ -32,4 +32,14 @@ final class RollUITests: XCTestCase {
             "Die should show a face between 1 and 6, got \(face ?? "nil")"
         )
     }
+
+    @MainActor
+    func testPassesAccessibilityAudit() throws {
+        let app = XCUIApplication()
+        app.launch()
+        XCTAssertTrue(app.buttons["rollButton"].waitForExistence(timeout: 15))
+
+        // Contrast, Dynamic Type clipping, hit regions, missing labels, etc.
+        try app.performAccessibilityAudit()
+    }
 }
