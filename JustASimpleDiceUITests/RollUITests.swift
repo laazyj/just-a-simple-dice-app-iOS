@@ -39,7 +39,15 @@ final class RollUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["rollButton"].waitForExistence(timeout: 15))
 
-        // Contrast, Dynamic Type clipping, hit regions, missing labels, etc.
-        try app.performAccessibilityAudit()
+        // Every iOS audit type as of Xcode 26, one at a time: each call has
+        // its own fixed time limit, which a single all-types audit can
+        // overrun on a slow CI simulator ("Audit failed to complete in time").
+        let auditTypes: [XCUIAccessibilityAuditType] = [
+            .contrast, .elementDetection, .hitRegion, .sufficientElementDescription,
+            .dynamicType, .textClipped, .trait,
+        ]
+        for auditType in auditTypes {
+            try app.performAccessibilityAudit(for: auditType)
+        }
     }
 }
