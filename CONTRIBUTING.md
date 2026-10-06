@@ -107,19 +107,3 @@ hand with `bundle exec fastlane submit version:X.Y.Z build_number:N`.
 App Store Connect closes a version to new builds once it's submitted, so
 TestFlight builds from commits after a release tag use the next patch
 version (e.g. `1.1.1` after `v1.1.0`) until the next release PR bumps it.
-
-One-time setup, on top of the TestFlight setup above:
-
-0. Tag the commit that shipped as 1.0 with `v1.0.0` and push the tag, so
-   TestFlight builds know 1.0.0 is closed and use 1.0.1.
-
-1. **Settings → Environments**: create `app-store`, limit it to `main`,
-   add yourself as a **required reviewer**, and add the same three `ASC_*`
-   secrets.
-2. **Settings → Actions → General**: allow GitHub Actions to create pull
-   requests.
-3. Optional but recommended once checks are required on `main`: add a
-   fine-grained personal access token as the `RELEASE_PLEASE_TOKEN`
-   repository secret (this repo only; Contents and Pull requests:
-   read/write). Release PRs opened with the default token don't trigger CI,
-   so their required checks would never report.
