@@ -121,7 +121,9 @@ private struct DieCountPicker: View {
             }
         }
         .padding(4)
-        .background(Capsule().fill(.black.opacity(0.22)))
+        // Opaque, so the white labels sit on a flat color rather than the
+        // textured felt (the contrast audit flagged the translucent version).
+        .background(Capsule().fill(Color("FeltGreenDark")))
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Number of dice")
     }
@@ -132,7 +134,7 @@ private struct DieCountPicker: View {
             selection = count
         } label: {
             Text(title)
-                .font(.subheadline.weight(isSelected ? .bold : .semibold))
+                .font(.subheadline.weight(.bold))
                 .foregroundStyle(isSelected ? Color("FeltGreen") : .white)
                 .padding(.horizontal, 20)
                 .frame(minWidth: 88, minHeight: 44)
