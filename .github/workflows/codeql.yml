@@ -35,6 +35,11 @@ jobs:
         run: |
           echo "DEVELOPER_DIR=/Applications/Xcode_$(cat .xcode-version).app/Contents/Developer" >> "$GITHUB_ENV"
 
+      # Xcode 26 ships the Metal compiler (for FeltTexture.metal) as a
+      # separate component that isn't always mounted on the runner.
+      - name: Install Metal toolchain
+        run: xcodebuild -downloadComponent MetalToolchain
+
       - uses: github/codeql-action/init@1190a975f95ce23525efb6a3fc21ea29567c1b52 # v3.38.2
         with:
           languages: swift
