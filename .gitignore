@@ -12,3 +12,6 @@ build/
 vendor/bundle/
 fastlane/report.xml
 fastlane/README.md
+
+# Metrics snapshots (private; see docs/metrics)
+baseline*.md
