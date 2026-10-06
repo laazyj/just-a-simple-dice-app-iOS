@@ -47,7 +47,13 @@ final class RollUITests: XCTestCase {
             .dynamicType, .textClipped, .trait,
         ]
         for auditType in auditTypes {
-            try app.performAccessibilityAudit(for: auditType)
+            try app.performAccessibilityAudit(for: auditType) { issue in
+                // XCTest's own failure message only names the issue type;
+                // log which element was flagged so CI failures are diagnosable.
+                let element = issue.element?.description ?? "none"
+                print("Accessibility audit issue: \(issue.detailedDescription) Element: \(element)")
+                return false
+            }
         }
     }
 }
