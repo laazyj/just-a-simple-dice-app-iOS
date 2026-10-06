@@ -39,3 +39,22 @@ zizmor runs some audits online; set `GH_TOKEN` (e.g.
 Dependabot keeps the GitHub Actions up to date, with a cooldown (see
 `.github/dependabot.yml`). Actions are pinned to full commit SHAs with the
 version in a trailing comment; Dependabot updates both.
+
+## Toolchain and versioning
+
+CI builds with the Xcode version in `.xcode-version`, selected by the
+`.github/actions/setup-xcode` action in each macOS job. Jobs reference it
+with GitHub's self-repository syntax (`uses: $/.github/actions/...`), which
+zizmor requires. Upstream rhysd/actionlint can't parse it, so CI lints
+workflows with the maintained fork
+[kjanat/actionlint](https://github.com/kjanat/actionlint); switch back once
+upstream releases `$/` support.
+
+Dependabot can't update the Xcode version: when Apple ships a new Xcode,
+bump `.xcode-version` to a version listed in the
+[runner image README](https://github.com/actions/runner-images/tree/main/images/macos)
+(and the runner label, when a new macOS image is needed).
+
+The app version lives in `Configuration/Version.xcconfig`, shared by all
+targets. Don't set `MARKETING_VERSION` or `CURRENT_PROJECT_VERSION` in the
+target build settings — they'd override the xcconfig.

@@ -27,7 +27,8 @@ This is just a nice skin over a random number generator:
 
 ## Building
 
-Open `JustASimpleDice.xcodeproj` in Xcode 16 or later and hit Run.
+Open `JustASimpleDice.xcodeproj` in Xcode 26 or later and hit Run (CI pins
+the exact version in [`.xcode-version`](.xcode-version)).
 No dependencies, no package resolution, nothing to install.
 
 ## Testing
@@ -38,7 +39,7 @@ No dependencies, no package resolution, nothing to install.
 xcodebuild test \
   -project JustASimpleDice.xcodeproj \
   -scheme JustASimpleDice \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
 CI runs the same suite on every push and pull request — plus SwiftLint,

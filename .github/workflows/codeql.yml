@@ -18,7 +18,7 @@ concurrency:
 jobs:
   analyze:
     name: Analyze Swift
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 60
     permissions:
       contents: read
@@ -29,13 +29,18 @@ jobs:
         with:
           persist-credentials: false
 
+      - uses: $/.github/actions/setup-xcode
+
       - uses: github/codeql-action/init@1190a975f95ce23525efb6a3fc21ea29567c1b52 # v3.38.2
         with:
           languages: swift
           build-mode: manual
 
       # Swift analysis traces a real build; build for the generic simulator
-      # so no specific device needs to exist on the runner.
+      # so no specific device needs to exist on the runner. The Metal shader
+      # is left out: CodeQL doesn't analyze it, and under the tracer Xcode
+      # 26's separately installed Metal compiler can't be found. Swift
+      # looks the shader up at runtime, so the build is otherwise unchanged.
       - name: Build
         run: |
           xcodebuild build \
@@ -43,7 +48,8 @@ jobs:
             -scheme JustASimpleDice \
             -destination "generic/platform=iOS Simulator" \
             -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            EXCLUDED_SOURCE_FILE_NAMES=FeltTexture.metal
 
       - uses: github/codeql-action/analyze@1190a975f95ce23525efb6a3fc21ea29567c1b52 # v3.38.2
         with:
