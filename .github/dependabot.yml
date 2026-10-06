@@ -16,7 +16,7 @@ updates:
     commit-message:
       prefix: "ci"
 
-  # CI's linter images, pinned in .github/linters/*.Dockerfile.
+  # CI's SwiftLint image, pinned in .github/linters/swiftlint.Dockerfile.
   - package-ecosystem: "docker"
     directory: "/.github/linters"
     schedule:
