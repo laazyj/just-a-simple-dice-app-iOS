@@ -45,8 +45,8 @@ and one grouped PR per ecosystem per week (see `.github/dependabot.yml`):
   `.github/linters/swiftlint.Dockerfile`. CI runs the image named on the
   `FROM` line; the file exists so Dependabot's docker ecosystem can see it.
   Match your local `swiftlint` to that version.
-- **actionlint** runs via `raven-actions/actionlint`, so the action is
-  tracked with the others; its `version:` input is bumped by hand (#28).
+- **actionlint** runs as the `kjanat/actionlint` action, so Dependabot
+  updates it with the other actions.
 
 The app itself has no dependencies.
 
