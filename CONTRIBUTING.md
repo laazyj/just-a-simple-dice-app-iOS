@@ -41,10 +41,12 @@ and one grouped PR per ecosystem per week (see `.github/dependabot.yml`):
 
 - **GitHub Actions** are pinned to full commit SHAs with the version in a
   trailing comment; Dependabot updates both.
-- **Linter images** (SwiftLint, actionlint) are pinned by tag and digest in
-  `.github/linters/*.Dockerfile`. CI runs the image named on the `FROM`
-  line; the files exist so Dependabot's docker ecosystem can see them.
+- **SwiftLint's image** is pinned by tag and digest in
+  `.github/linters/swiftlint.Dockerfile`. CI runs the image named on the
+  `FROM` line; the file exists so Dependabot's docker ecosystem can see it.
   Match your local `swiftlint` to that version.
+- **actionlint** runs via `raven-actions/actionlint`, so the action is
+  tracked with the others; its `version:` input is bumped by hand (#28).
 
 The app itself has no dependencies.
 
@@ -57,8 +59,11 @@ those titles to pick the next version and write the changelog.
 
 ## Toolchain and versioning
 
-CI builds with the Xcode version in `.xcode-version` (selected by the
-"Select pinned Xcode" step in each macOS job). Dependabot can't update it: when Apple ships a new Xcode, bump the
+CI builds with the Xcode version in `.xcode-version`, selected by the
+`.github/actions/setup-xcode` action in each macOS job. Jobs reference it
+with GitHub's self-repository syntax (`uses: $/.github/actions/...`), which
+zizmor requires; actionlint doesn't support it yet, so CI tells it to ignore
+those references (#28). Dependabot can't update the Xcode version: when Apple ships a new Xcode, bump the
 file to a version listed in the
 [runner image README](https://github.com/actions/runner-images/tree/main/images/macos)
 (and the runner label, when a new macOS image is needed).
