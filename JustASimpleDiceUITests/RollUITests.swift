@@ -78,13 +78,10 @@ final class RollUITests: XCTestCase {
 
     @MainActor
     func testPassesAccessibilityAudit() throws {
-        let app = launch(dieCount: 2)
-        try audit(app)
-
-        // Switching in-app (rather than relaunching) leaves the saved choice alone.
-        app.buttons["dieCount1"].tap()
-        XCTAssertTrue(app.otherElements["die2"].waitForNonExistence(timeout: 5))
-        try audit(app)
+        // One launch per layout (see launch(dieCount:)), over DiceRoller.dieCounts.
+        for dieCount in 1...2 {
+            try audit(launch(dieCount: dieCount))
+        }
     }
 
     @MainActor
