@@ -1,0 +1,19 @@
+name: Select pinned Xcode
+description: >-
+  Switches the runner to the Xcode version pinned in .xcode-version, so
+  runner image updates can't change the toolchain.
+
+runs:
+  using: composite
+  steps:
+    - name: Select pinned Xcode
+      shell: bash
+      run: |
+        XCODE_VERSION="$(cat .xcode-version)"
+        XCODE_APP="/Applications/Xcode_${XCODE_VERSION}.app"
+        if [ ! -d "$XCODE_APP" ]; then
+          echo "::error::Xcode ${XCODE_VERSION} isn't on this runner image. See https://github.com/actions/runner-images/tree/main/images/macos"
+          exit 1
+        fi
+        sudo xcode-select -s "$XCODE_APP"
+        xcodebuild -version
