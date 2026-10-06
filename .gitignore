@@ -6,3 +6,9 @@ xcuserdata/
 DerivedData/
 build/
 *.xcresult
+
+# Ruby (fastlane)
+.bundle/
+vendor/bundle/
+fastlane/report.xml
+fastlane/README.md

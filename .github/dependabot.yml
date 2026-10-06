@@ -28,3 +28,16 @@ updates:
         patterns: ["*"]
     commit-message:
       prefix: "ci"
+
+  # fastlane (CI-only release tooling).
+  - package-ecosystem: "bundler"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    groups:
+      ruby:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci"

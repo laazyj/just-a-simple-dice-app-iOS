@@ -75,3 +75,11 @@ bump `.xcode-version` to a version listed in the
 The app version lives in `Configuration/Version.xcconfig`, shared by all
 targets. Don't set `MARKETING_VERSION` or `CURRENT_PROJECT_VERSION` in the
 target build settings — they'd override the xcconfig.
+
+## TestFlight
+
+Every push to `main` that passes CI is built and uploaded to TestFlight by
+the **Upload to TestFlight** job (`fastlane beta`). The build number is the
+latest one in App Store Connect plus one, and the TestFlight "What to Test"
+note is the commit's subject line. Signing is cloud-managed, so no
+certificates or provisioning profiles are stored anywhere.

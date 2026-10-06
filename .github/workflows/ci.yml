@@ -12,7 +12,8 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Supersede stale PR runs, but let every push to main finish (and upload).
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   swiftlint:
@@ -160,3 +161,47 @@ jobs:
         with:
           name: simulator-screenshot
           path: screenshot.png
+
+  # Every push to main that passes CI goes to internal TestFlight testers.
+  testflight:
+    name: Upload to TestFlight
+    needs: [swiftlint, actionlint, zizmor, gitleaks, build]
+    # TESTFLIGHT_ENABLED is a repository variable, set once the testflight
+    # environment has its App Store Connect secrets.
+    if: >-
+      github.event_name == 'push' && github.ref == 'refs/heads/main'
+      && vars.TESTFLIGHT_ENABLED == 'true'
+    runs-on: macos-26
+    timeout-minutes: 45
+    environment: testflight
+    # Build numbers come from App Store Connect's latest + 1, so uploads
+    # must not overlap.
+    concurrency:
+      group: app-store-connect-upload
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: $/.github/actions/setup-xcode
+
+      # Xcode 26 ships the Metal compiler (for FeltTexture.metal) as a
+      # separate component that isn't always available on the runner.
+      - name: Install Metal toolchain
+        run: xcodebuild -downloadComponent MetalToolchain
+
+      # No bundler-cache: caches restored into a job that publishes builds
+      # are a cache-poisoning risk.
+      - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
+
+      - name: Build and upload
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          export ASC_KEY_PATH="$RUNNER_TEMP/AuthKey.p8"
+          printf '%s\n' "$ASC_KEY_P8" > "$ASC_KEY_PATH"
+          bundle install --jobs 4
+          bundle exec fastlane beta
