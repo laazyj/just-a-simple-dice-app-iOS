@@ -113,6 +113,7 @@ jobs:
             exit 1
           fi
           echo "Using simulator $UDID"
+          xcrun simctl list devices | grep "$UDID"
           echo "SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
 
       - name: Run tests
