@@ -1,4 +1,9 @@
 // The app's version, shared by every target. Don't set these in target
 // build settings; they would override this file.
+//
+// release-please bumps MARKETING_VERSION in its release PR; CI overrides
+// CURRENT_PROJECT_VERSION with the next App Store Connect build number.
+// x-release-please-start-version
 MARKETING_VERSION = 1.0.0
+// x-release-please-end
 CURRENT_PROJECT_VERSION = 1

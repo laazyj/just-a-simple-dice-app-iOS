@@ -9,17 +9,52 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Build the app and upload it to TestFlight for internal testers"
-  lane :beta do
-    build_and_upload
+  def asc_credentials
+    %w[ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_PATH].map { |name| ENV.fetch(name) }
   end
 
-  private_lane :build_and_upload do
-    key_id, issuer_id, key_path = %w[ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_PATH].map { |name| ENV.fetch(name) }
-    # Stored in the lane context, where the App Store Connect actions below
-    # pick it up.
+  # Turns release-please's markdown changelog into plain App Store
+  # "What's New" text: one bullet per change, without links or scopes.
+  def app_store_notes(changelog)
+    notes = changelog.lines.filter_map do |line|
+      next unless (entry = line[/^\* (.+)/, 1])
+
+      entry = entry.gsub(/\s*\(\[[^\]]+\]\([^)]+\)\)/, "").sub(/\A\*\*[^*]+:\*\*\s*/, "")
+      "• #{entry[0].upcase}#{entry[1..]}"
+    end
+    return notes.join("\n") unless notes.empty?
+
+    UI.important("No changelog entries found in the release notes; using a generic note") unless changelog.strip.empty?
+    "Bug fixes and improvements."
+  end
+
+  # App Store Connect stops accepting builds for a version once it's been
+  # submitted, so commits after a release tag build as the next patch until
+  # release-please bumps the real version.
+  def testflight_version
+    version = File.read("../Configuration/Version.xcconfig")[/^MARKETING_VERSION = (\S+)/, 1]
+    # Both lightweight and annotated tags; for annotated, the peeled ^{}
+    # line (the commit) sorts last.
+    refs = sh("git", "ls-remote", "origin", "refs/tags/v#{version}", "refs/tags/v#{version}^{}", log: false)
+    tag_commit = refs.lines.last&.split&.first
+    return version if tag_commit.nil? || tag_commit == last_git_commit[:commit_hash]
+
+    major, minor, patch = version.split(".").map(&:to_i)
+    "#{major}.#{minor}.#{patch + 1}"
+  end
+
+  before_all do
+    key_id, issuer_id, key_path = asc_credentials
+    # Stored in the lane context, where the App Store Connect actions pick it up.
     app_store_connect_api_key(key_id: key_id, issuer_id: issuer_id, key_filepath: key_path)
+  end
+
+  desc "Build the app and upload it to TestFlight for internal testers"
+  lane :beta do
+    key_id, issuer_id, key_path = asc_credentials
+    version = testflight_version
     build_number = latest_testflight_build_number(initial_build_number: 0) + 1
+    UI.message("Building #{version} (#{build_number})")
 
     auth = "-allowProvisioningUpdates -authenticationKeyPath #{key_path.shellescape} " \
            "-authenticationKeyID #{key_id.shellescape} -authenticationKeyIssuerID #{issuer_id.shellescape}"
@@ -31,7 +66,7 @@ platform :ios do
       export_method: "app-store",
       skip_codesigning: true,
       skip_profile_detection: true,
-      xcargs: "CURRENT_PROJECT_VERSION=#{build_number}",
+      xcargs: "MARKETING_VERSION=#{version} CURRENT_PROJECT_VERSION=#{build_number}",
       export_xcargs: auth,
       export_options: {
         signingStyle: "automatic",
@@ -44,6 +79,28 @@ platform :ios do
     upload_to_testflight(
       changelog: last_git_commit[:message].lines.first.strip,
       distribute_external: false,
+    )
+
+    # Lets a later CI job submit this exact build for review.
+    File.write(ENV["GITHUB_OUTPUT"], "build_number=#{build_number}\n", mode: "a") if ENV["GITHUB_OUTPUT"]
+  end
+
+  # fastlane submit version:1.1.0 build_number:42, with the release-please
+  # changelog in RELEASE_NOTES.
+  desc "Submit an uploaded build for App Store review, released in phases"
+  lane :submit do |options|
+    deliver(
+      app_version: options.fetch(:version),
+      build_number: options.fetch(:build_number),
+      release_notes: { "default" => app_store_notes(ENV.fetch("RELEASE_NOTES", "")) },
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      submit_for_review: true,
+      automatic_release: true,
+      phased_release: true,
+      precheck_include_in_app_purchases: false,
+      submission_information: { add_id_info_uses_idfa: false },
+      force: true, # no interactive HTML preview in CI
     )
   end
 end

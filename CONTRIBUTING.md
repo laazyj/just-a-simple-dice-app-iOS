@@ -83,3 +83,27 @@ the **Upload to TestFlight** job (`fastlane beta`). The build number is the
 latest one in App Store Connect plus one, and the TestFlight "What to Test"
 note is the commit's subject line. Signing is cloud-managed, so no
 certificates or provisioning profiles are stored anywhere.
+
+## Releasing to the App Store
+
+[release-please](https://github.com/googleapis/release-please) keeps a
+**release PR** open on `main`. It collects the `feat:` and `fix:` titles
+merged since the last release, bumps `MARKETING_VERSION` (minor for
+features, patch for fixes) and updates `CHANGELOG.md`. Other types (`ci:`,
+`test:`, `chore:`, ...) don't trigger a release.
+
+To ship:
+
+1. Merge the release PR. CI tags `vX.Y.Z`, creates the GitHub release, and
+   uploads that commit's build to TestFlight as usual.
+2. Try the build in TestFlight.
+3. Approve the waiting **Submit for App Review** job (the `app-store`
+   environment). It submits that exact build with the changelog as
+   "What's New", released in phases once Apple approves.
+
+If the TestFlight upload for a release commit didn't happen, submit by
+hand with `bundle exec fastlane submit version:X.Y.Z build_number:N`.
+
+App Store Connect closes a version to new builds once it's submitted, so
+TestFlight builds from commits after a release tag use the next patch
+version (e.g. `1.1.1` after `v1.1.0`) until the next release PR bumps it.
