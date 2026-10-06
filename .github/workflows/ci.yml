@@ -34,9 +34,13 @@ jobs:
         with:
           persist-credentials: false
       - name: Lint GitHub Actions workflows
-        uses: docker://rhysd/actionlint:1.7.12
+        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
         with:
-          args: -color
+          version: 1.7.12
+          cache: false
+          # actionlint doesn't know GitHub's self-repository syntax (uses: $/...)
+          # yet; zizmor requires it. Drop this once actionlint supports it (#28).
+          flags: -ignore specifying\saction\s.\$/
 
   zizmor:
     name: Audit workflows
@@ -75,11 +79,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # The runner's default Xcode changes with image updates; build with the
-      # version pinned in .xcode-version instead.
-      - name: Select pinned Xcode
-        run: |
-          echo "DEVELOPER_DIR=/Applications/Xcode_$(cat .xcode-version).app/Contents/Developer" >> "$GITHUB_ENV"
+      - uses: $/.github/actions/setup-xcode
 
       # Runner images vary in which simulators they ship, so pick whatever
       # iPhone is available (newest runtime) instead of hardcoding a name.
