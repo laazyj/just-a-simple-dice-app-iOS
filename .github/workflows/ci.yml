@@ -184,6 +184,8 @@ jobs:
     concurrency:
       group: app-store-connect-upload
       cancel-in-progress: false
+    outputs:
+      build_number: ${{ steps.upload.outputs.build_number }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -202,6 +204,7 @@ jobs:
       - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
 
       - name: Build and upload
+        id: upload
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
@@ -211,3 +214,56 @@ jobs:
           printf '%s\n' "$ASC_KEY_P8" > "$ASC_KEY_PATH"
           bundle install --jobs 4
           bundle exec fastlane beta
+
+  # Keeps a release PR open that bumps the version and changelog from the
+  # Conventional Commit titles merged since the last release. Merging that
+  # PR tags the release here.
+  release-please:
+    name: Release PR
+    needs: [swiftlint, actionlint, zizmor, gitleaks, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      version: ${{ steps.release.outputs.version }}
+      notes: ${{ steps.release.outputs.body }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          # PRs opened with the default token don't trigger CI, so required
+          # checks would never report on the release PR. A fine-grained PAT
+          # (contents + pull requests: write) avoids that.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+
+  # A release commit's TestFlight build, once a reviewer approves the
+  # app-store environment, goes to App Review with a phased release.
+  submit:
+    name: Submit for App Review
+    needs: [testflight, release-please]
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    environment: app-store
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
+
+      - name: Submit build ${{ needs.testflight.outputs.build_number }}
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          VERSION: ${{ needs.release-please.outputs.version }}
+          BUILD_NUMBER: ${{ needs.testflight.outputs.build_number }}
+          RELEASE_NOTES: ${{ needs.release-please.outputs.notes }}
+        run: |
+          export ASC_KEY_PATH="$RUNNER_TEMP/AuthKey.p8"
+          printf '%s\n' "$ASC_KEY_P8" > "$ASC_KEY_PATH"
+          bundle install --jobs 4
+          bundle exec fastlane submit "version:$VERSION" "build_number:$BUILD_NUMBER"

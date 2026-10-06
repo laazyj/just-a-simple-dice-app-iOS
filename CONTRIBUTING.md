@@ -93,3 +93,43 @@ One-time setup (until then the job is skipped):
 To run a lane locally, set `ASC_KEY_ID`, `ASC_ISSUER_ID` and
 `ASC_KEY_PATH` (path to the `.p8`), then `bundle install` and
 `bundle exec fastlane beta`.
+
+## Releasing to the App Store
+
+[release-please](https://github.com/googleapis/release-please) keeps a
+**release PR** open on `main`. It collects the `feat:` and `fix:` titles
+merged since the last release, bumps `MARKETING_VERSION` (minor for
+features, patch for fixes) and updates `CHANGELOG.md`. Other types (`ci:`,
+`test:`, `chore:`, ...) don't trigger a release.
+
+To ship:
+
+1. Merge the release PR. CI tags `vX.Y.Z`, creates the GitHub release, and
+   uploads that commit's build to TestFlight as usual.
+2. Try the build in TestFlight.
+3. Approve the waiting **Submit for App Review** job (the `app-store`
+   environment). It submits that exact build with the changelog as
+   "What's New", released in phases once Apple approves.
+
+If the TestFlight upload for a release commit didn't happen, submit by
+hand with `bundle exec fastlane submit version:X.Y.Z build_number:N`.
+
+App Store Connect closes a version to new builds once it's submitted, so
+TestFlight builds from commits after a release tag use the next patch
+version (e.g. `1.1.1` after `v1.1.0`) until the next release PR bumps it.
+
+One-time setup, on top of the TestFlight setup above:
+
+0. Tag the commit that shipped as 1.0 with `v1.0.0` and push the tag, so
+   TestFlight builds know 1.0.0 is closed and use 1.0.1.
+
+1. **Settings → Environments**: create `app-store`, limit it to `main`,
+   add yourself as a **required reviewer**, and add the same three `ASC_*`
+   secrets.
+2. **Settings → Actions → General**: allow GitHub Actions to create pull
+   requests.
+3. Optional but recommended once checks are required on `main`: add a
+   fine-grained personal access token as the `RELEASE_PLEASE_TOKEN`
+   repository secret (this repo only; Contents and Pull requests:
+   read/write). Release PRs opened with the default token don't trigger CI,
+   so their required checks would never report.

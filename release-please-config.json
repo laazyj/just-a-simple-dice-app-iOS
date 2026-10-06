@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "5ba53c93e214fe02c46b47bc1590f29ac9c279ca",
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "package-name": "JASDA",
+      "include-component-in-tag": false,
+      "extra-files": [
+        { "type": "generic", "path": "Configuration/Version.xcconfig" }
+      ]
+    }
+  }
+}
