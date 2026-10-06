@@ -84,25 +84,6 @@ latest one in App Store Connect plus one, and the TestFlight "What to Test"
 note is the commit's subject line. Signing is cloud-managed, so no
 certificates or provisioning profiles are stored anywhere.
 
-One-time setup (until then the job is skipped):
-
-1. **App Store Connect → Users and Access → Integrations → Team Keys**:
-   generate a key with the **Admin** role (cloud-managed distribution
-   signing needs it) and download the `.p8`.
-2. **GitHub → Settings → Environments**: create `testflight`, limit
-   deployment branches to `main`, and add the secrets:
-   - `ASC_KEY_ID`: the key ID
-   - `ASC_ISSUER_ID`: the issuer ID shown above the keys list
-   - `ASC_KEY_P8`: the full contents of the `.p8` file
-3. **GitHub → Settings → Secrets and variables → Actions → Variables**:
-   add the repository variable `TESTFLIGHT_ENABLED` = `true`.
-4. **TestFlight → Internal Testing**: create a group with automatic
-   distribution enabled, so new builds reach testers without a click.
-
-To run a lane locally, set `ASC_KEY_ID`, `ASC_ISSUER_ID` and
-`ASC_KEY_PATH` (path to the `.p8`), then `bundle install` and
-`bundle exec fastlane beta`.
-
 ## Releasing to the App Store
 
 [release-please](https://github.com/googleapis/release-please) keeps a
@@ -126,19 +107,3 @@ hand with `bundle exec fastlane submit version:X.Y.Z build_number:N`.
 App Store Connect closes a version to new builds once it's submitted, so
 TestFlight builds from commits after a release tag use the next patch
 version (e.g. `1.1.1` after `v1.1.0`) until the next release PR bumps it.
-
-One-time setup, on top of the TestFlight setup above:
-
-0. Tag the commit that shipped as 1.0 with `v1.0.0` and push the tag, so
-   TestFlight builds know 1.0.0 is closed and use 1.0.1.
-
-1. **Settings → Environments**: create `app-store`, limit it to `main`,
-   add yourself as a **required reviewer**, and add the same three `ASC_*`
-   secrets.
-2. **Settings → Actions → General**: allow GitHub Actions to create pull
-   requests.
-3. Optional but recommended once checks are required on `main`: add a
-   fine-grained personal access token as the `RELEASE_PLEASE_TOKEN`
-   repository secret (this repo only; Contents and Pull requests:
-   read/write). Release PRs opened with the default token don't trigger CI,
-   so their required checks would never report.
