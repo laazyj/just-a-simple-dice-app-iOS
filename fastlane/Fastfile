@@ -10,7 +10,9 @@ default_platform(:ios)
 
 platform :ios do
   def asc_credentials
-    %w[ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_PATH].map { |name| ENV.fetch(name) }
+    key_id, issuer_id, key_path = %w[ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_PATH].map { |name| ENV.fetch(name) }
+    # Lanes run in fastlane/; resolve a relative key path from the repo root.
+    [key_id, issuer_id, File.expand_path(key_path, "..")]
   end
 
   # Turns release-please's markdown changelog into plain App Store
@@ -85,14 +87,34 @@ platform :ios do
     File.write(ENV["GITHUB_OUTPUT"], "build_number=#{build_number}\n", mode: "a") if ENV["GITHUB_OUTPUT"]
   end
 
+  # The listing lives in fastlane/metadata and is uploaded by submit, so
+  # edit it in a PR rather than in App Store Connect. Run this once to
+  # bootstrap it from the live version (or to pull in changes made in
+  # App Store Connect), then commit the result.
+  desc "Download the live App Store listing text into fastlane/metadata"
+  lane :download_listing do
+    # deliver's CLI reads the key (as JSON) from this variable; passing it
+    # to sh instead would echo the private key into the log.
+    ENV["APP_STORE_CONNECT_API_KEY"] = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY].to_json
+    Dir.chdir("..") do
+      # Downloads the newest App Store version: the live one, or the next
+      # one if it's already been created in App Store Connect.
+      sh("fastlane", "deliver", "download_metadata", "--force", "--metadata_path", "fastlane/metadata")
+    end
+  end
+
   # fastlane submit version:1.1.0 build_number:42, with the release-please
   # changelog in RELEASE_NOTES.
   desc "Submit an uploaded build for App Store review, released in phases"
   lane :submit do |options|
+    notes = app_store_notes(ENV.fetch("RELEASE_NOTES", ""))
+    # Name every listing language: deliver prefers a language's
+    # release_notes.txt over "default", and those would be stale.
+    languages = Dir.glob("metadata/*/").map { |dir| File.basename(dir) } - ["review_information"]
     deliver(
       app_version: options.fetch(:version),
       build_number: options.fetch(:build_number),
-      release_notes: { "default" => app_store_notes(ENV.fetch("RELEASE_NOTES", "")) },
+      release_notes: (languages + ["default"]).to_h { |language| [language, notes] },
       skip_binary_upload: true,
       skip_screenshots: true,
       submit_for_review: true,
