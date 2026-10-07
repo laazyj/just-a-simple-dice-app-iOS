@@ -20,3 +20,6 @@ baseline*.md
 # changelog, and App Review contact details stay in App Store Connect.
 fastlane/metadata/*/release_notes.txt
 fastlane/metadata/review_information/
+
+# Generated from SCREENSHOTS_DIR by the submit lane
+fastlane/screenshots/

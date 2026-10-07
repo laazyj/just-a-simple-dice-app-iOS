@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 
 final class RollUITests: XCTestCase {
@@ -81,6 +82,31 @@ final class RollUITests: XCTestCase {
         // One launch per layout (see launch(dieCount:)), over DiceRoller.dieCounts.
         for dieCount in 1...2 {
             try audit(launch(dieCount: dieCount))
+        }
+    }
+
+    /// Saves the App Store screenshots when SCREENSHOTS_DIR is set, as
+    /// scripts/capture-screenshots.sh does; skipped in normal test runs.
+    @MainActor
+    func testCaptureStoreScreenshots() throws {
+        guard let directory = ProcessInfo.processInfo.environment["SCREENSHOTS_DIR"] else {
+            throw XCTSkip("Set SCREENSHOTS_DIR to capture App Store screenshots")
+        }
+        XCUIDevice.shared.orientation = .portrait
+        let device = UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone"
+        for dieCount in 1...2 {
+            let app = launch(dieCount: dieCount)
+            // Reroll a few times for a photogenic result: a high single die,
+            // or two different faces adding up to 7 or more.
+            for _ in 0..<20 {
+                roll(app)
+                let faces = (1...dieCount).compactMap { face(of: app.otherElements["die\($0)"]) }
+                if faces.reduce(0, +) >= 4 * dieCount - 1, Set(faces).count == dieCount { break }
+            }
+            // Let the spin and bounce settle.
+            Thread.sleep(forTimeInterval: 1)
+            let file = URL(fileURLWithPath: directory).appendingPathComponent("\(dieCount)-\(device).png")
+            try XCUIScreen.main.screenshot().pngRepresentation.write(to: file)
         }
     }
 

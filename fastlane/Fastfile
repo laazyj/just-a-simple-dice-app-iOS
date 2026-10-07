@@ -111,12 +111,20 @@ platform :ios do
     # Name every listing language: deliver prefers a language's
     # release_notes.txt over "default", and those would be stale.
     languages = Dir.glob("metadata/*/").map { |dir| File.basename(dir) } - ["review_information"]
+    # From scripts/capture-screenshots.sh, which names files by device; the
+    # same set goes to every language.
+    screenshots = ENV["SCREENSHOTS_DIR"] ? Dir.glob(File.join(ENV["SCREENSHOTS_DIR"], "*.png")) : []
+    languages.each do |language|
+      FileUtils.mkdir_p("screenshots/#{language}")
+      FileUtils.cp(screenshots, "screenshots/#{language}")
+    end
     deliver(
       app_version: options.fetch(:version),
       build_number: options.fetch(:build_number),
       release_notes: (languages + ["default"]).to_h { |language| [language, notes] },
       skip_binary_upload: true,
-      skip_screenshots: true,
+      skip_screenshots: screenshots.empty? || languages.empty?,
+      overwrite_screenshots: true,
       submit_for_review: true,
       automatic_release: true,
       phased_release: true,
