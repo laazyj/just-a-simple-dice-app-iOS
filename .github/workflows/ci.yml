@@ -72,7 +72,7 @@ jobs:
   build:
     name: Test and screenshot
     runs-on: macos-26
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -135,33 +135,29 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # The result bundle has per-test logs, failure screenshots, and the
+      # Reviewable on every PR; the submit job uploads the release's set.
+      - name: Capture App Store screenshots
+        run: |
+          # Free any simulator still up from the test run for the ones the
+          # script boots ("all" doesn't fail when none is booted).
+          xcrun simctl shutdown all
+          scripts/capture-screenshots.sh build/app-store-screenshots
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: app-store-screenshots
+          path: build/app-store-screenshots
+
+      # The result bundles have per-test logs, failure screenshots, and the
       # accessibility audit's findings.
       - name: Upload test results
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: test-results
-          path: TestResults.xcresult
-
-      - name: Capture simulator screenshot
-        run: |
-          BUNDLE_ID=$(xcodebuild -showBuildSettings \
-            -project JustASimpleDice.xcodeproj \
-            -scheme JustASimpleDice \
-            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" 2>/dev/null \
-            | awk '/PRODUCT_BUNDLE_IDENTIFIER/ { print $3; exit }')
-          xcrun simctl bootstatus "$SIMULATOR_UDID" -b
-          xcrun simctl install "$SIMULATOR_UDID" \
-            build/Build/Products/Debug-iphonesimulator/JustASimpleDice.app
-          xcrun simctl launch "$SIMULATOR_UDID" "$BUNDLE_ID"
-          sleep 8
-          xcrun simctl io "$SIMULATOR_UDID" screenshot screenshot.png
-
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: simulator-screenshot
-          path: screenshot.png
+          path: |
+            TestResults.xcresult
+            build/ScreenshotResults
 
   # Every push to main that passes CI goes to internal TestFlight testers.
   testflight:
@@ -242,12 +238,22 @@ jobs:
     if: needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
     environment: app-store
+    permissions:
+      contents: read
+      actions: read # to download this run's screenshots
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
+
+      - name: Download the App Store screenshots
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY"
+          --name app-store-screenshots --dir "$RUNNER_TEMP/app-store-screenshots"
 
       - name: Submit build ${{ needs.testflight.outputs.build_number }}
         env:
@@ -257,6 +263,7 @@ jobs:
           VERSION: ${{ needs.release-please.outputs.version }}
           BUILD_NUMBER: ${{ needs.testflight.outputs.build_number }}
           RELEASE_NOTES: ${{ needs.release-please.outputs.notes }}
+          SCREENSHOTS_DIR: ${{ runner.temp }}/app-store-screenshots
         run: |
           export ASC_KEY_PATH="$RUNNER_TEMP/AuthKey.p8"
           printf '%s\n' "$ASC_KEY_P8" > "$ASC_KEY_PATH"
