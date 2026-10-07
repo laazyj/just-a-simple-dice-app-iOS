@@ -9,8 +9,33 @@ struct DiceRollerTests {
     @Test func landsOnFinalRandomFace() async {
         let roller = DiceRoller(tickDuration: .zero, randomFace: { 5 })
         await roller.roll()
-        #expect(roller.value == 5)
+        #expect(roller.faces == [5])
         #expect(roller.isRolling == false)
+    }
+
+    @Test func rollsEveryDieAndTotalsThem() async {
+        let roller = Self.countingRoller()
+        roller.dieCount = 2
+        await roller.roll()
+        #expect(roller.faces == [2, 3])
+        #expect(roller.total == 5)
+    }
+
+    @Test func changingDieCountKeepsFacesShowing() async {
+        let roller = Self.countingRoller()
+        await roller.roll()
+        roller.dieCount = 2
+        #expect(roller.faces == [1, 2])
+        roller.dieCount = 1
+        #expect(roller.faces == [1])
+    }
+
+    @Test func dieCountIsClampedToSupportedRange() {
+        let roller = DiceRoller()
+        roller.dieCount = 0
+        #expect(roller.dieCount == 1)
+        roller.dieCount = 5
+        #expect(roller.dieCount == 2)
     }
 
     @Test func ignoresRollWhileAlreadyRolling() async {
@@ -46,19 +71,51 @@ struct DiceRollerTests {
         var counts = [Int](repeating: 0, count: 6)
         for _ in 0..<rolls {
             await roller.roll()
-            try #require((1...6).contains(roller.value))
-            counts[roller.value - 1] += 1
+            let face = roller.faces[0]
+            try #require((1...6).contains(face))
+            counts[face - 1] += 1
         }
         // Pearson's chi-squared test against a uniform die (5 degrees of
         // freedom). A fair die exceeds 40 with probability ~1.5e-7, so this
         // won't flake, but it catches a missing face or a mapping bias (e.g.
         // modulo) that makes one face even ~20% too likely.
-        let expected = Double(rolls) / 6
-        let chiSquared = counts.reduce(0.0) { sum, observed in
-            let delta = Double(observed) - expected
-            return sum + delta * delta / expected
-        }
+        let chiSquared = Self.chiSquared(counts, expected: Array(repeating: Double(rolls) / 6, count: 6))
         #expect(chiSquared < 40, "Face counts \(counts) look biased (χ² = \(chiSquared))")
+    }
+
+    @Test func twoDiceTotalsFollowTheTriangle() async throws {
+        let roller = DiceRoller(tickDuration: .zero, tickCount: 0)
+        roller.dieCount = 2
+        let rolls = 7_200
+        var counts = [Int](repeating: 0, count: 11)
+        for _ in 0..<rolls {
+            await roller.roll()
+            try #require((2...12).contains(roller.total))
+            counts[roller.total - 2] += 1
+        }
+        // A sum s of two fair dice has (6 - |s - 7|) ways out of 36. With 10
+        // degrees of freedom, exceeding 55 has probability ~3e-8; a second
+        // die stuck on the first's face (doubles only) would blow far past it.
+        let expected = (2...12).map { Double(rolls * (6 - abs($0 - 7))) / 36 }
+        let chiSquared = Self.chiSquared(counts, expected: expected)
+        #expect(chiSquared < 55, "Total counts \(counts) look biased (χ² = \(chiSquared))")
+    }
+
+    /// A roller that settles instantly, dealing faces 1, 2, 3, … in turn.
+    private static func countingRoller() -> DiceRoller {
+        var next = 0
+        return DiceRoller(tickDuration: .zero, tickCount: 0) {
+            next += 1
+            return next
+        }
+    }
+
+    /// Pearson's chi-squared statistic for observed counts against expected ones.
+    private static func chiSquared(_ observed: [Int], expected: [Double]) -> Double {
+        zip(observed, expected).reduce(0.0) { sum, pair in
+            let delta = Double(pair.0) - pair.1
+            return sum + delta * delta / pair.1
+        }
     }
 }
 
