@@ -147,8 +147,9 @@ jobs:
       # Reviewable on every PR; the submit job uploads the release's set.
       - name: Capture App Store screenshots
         run: |
-          # Free the test run's simulator for the two the script boots.
-          xcrun simctl shutdown "$SIMULATOR_UDID"
+          # Free any simulator still up from the test run for the two the
+          # script boots ("all" doesn't fail when none is booted).
+          xcrun simctl shutdown all
           scripts/capture-screenshots.sh build/app-store-screenshots
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
