@@ -1,8 +1,10 @@
+One die, or two when the game calls for it. Tap ROLL or shake your phone. That's it.
+
 Built for casual family gaming — board games on vacation, settling who goes first, replacing the die that rolled under the sofa. Every dice app on the store seems to bury a random number behind ads, pop-ups, cookie banners, tracking, and in-app purchases.
 
-This is just a nice skin over a random number generator:
+JASDA is a one-time purchase, and then it's just a nice skin over a random number generator:
+- Shows the total when you roll two.
 - No ads. No pop-ups. No cookies. No tracking. No in-app purchases.
 - No accounts, no analytics, and no network access at all.
 - Fair rolls from the system's cryptographic RNG.
 - Haptic feedback and full VoiceOver support.
-
