@@ -15,3 +15,8 @@ fastlane/README.md
 
 # Metrics snapshots (private; see docs/metrics)
 baseline*.md
+
+# App Store listing (fastlane/metadata): "What's New" comes from the
+# changelog, and App Review contact details stay in App Store Connect.
+fastlane/metadata/*/release_notes.txt
+fastlane/metadata/review_information/
