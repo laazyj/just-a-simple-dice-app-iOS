@@ -1,0 +1,1 @@
+New: roll two dice and see the total, for games that need a pair.

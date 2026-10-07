@@ -6,7 +6,7 @@
 
 One die, or two when the game calls for it. Tap **ROLL** or shake your phone. That's it.
 
-**[Download JASDA free on the App Store](https://apps.apple.com/app/jasda-just-a-simple-dice-app/id6797626109)** — no ads, no tracking, no nonsense.
+**[Get JASDA on the App Store](https://apps.apple.com/app/jasda-just-a-simple-dice-app/id6797626109)** — one-time purchase, no ads, no tracking, no nonsense.
 
 <img src="docs/screenshots/pr2-die.png" alt="A white die showing five on a felt-green background, above a ROLL button" width="300">
 
@@ -19,6 +19,7 @@ tracking, and in-app purchases.
 
 This is just a nice skin over a random number generator:
 
+- Shows the total when you roll two.
 - **No ads. No pop-ups. No cookies. No tracking. No in-app purchases.**
 - No accounts, no analytics, and no network access at all — the app
   ships with a privacy manifest declaring zero data collection.
