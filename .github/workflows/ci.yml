@@ -138,7 +138,7 @@ jobs:
       # Reviewable on every PR; the submit job uploads the release's set.
       - name: Capture App Store screenshots
         run: |
-          # Free any simulator still up from the test run for the two the
+          # Free any simulator still up from the test run for the ones the
           # script boots ("all" doesn't fail when none is booted).
           xcrun simctl shutdown all
           scripts/capture-screenshots.sh build/app-store-screenshots
@@ -157,7 +157,7 @@ jobs:
           name: test-results
           path: |
             TestResults.xcresult
-            build/ScreenshotResults.xcresult
+            build/ScreenshotResults
 
   # Every push to main that passes CI goes to internal TestFlight testers.
   testflight:

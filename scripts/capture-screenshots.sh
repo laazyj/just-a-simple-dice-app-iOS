@@ -27,47 +27,43 @@ if [ -z "${ipad:-}" ]; then
   exit 1
 fi
 
-devices=()
+results=build/ScreenshotResults
+rm -rf "$results"
+
+udid=""
 cleanup() {
-  # macOS's bash 3.2 treats an empty array as unset under set -u.
-  for udid in ${devices[@]+"${devices[@]}"}; do
+  if [ -n "$udid" ]; then
     xcrun simctl shutdown "$udid" || true
     xcrun simctl delete "$udid" || true
-  done
+    udid=""
+  fi
 }
 trap cleanup EXIT
 
-destinations=()
+# One fresh simulator at a time: with two booting and testing at once on a
+# CI runner, XCTest timed out launching the app. A brand-new simulator can
+# still be busy with first-boot setup, so a failed capture gets one retry.
 for type in "$iphone" "$ipad"; do
   udid=$(xcrun simctl create "App Store screenshots" "$type" "$runtime")
-  devices+=("$udid")
-  destinations+=(-destination "platform=iOS Simulator,id=$udid")
-  xcrun simctl boot "$udid"
-done
-# First boots are slow, so they run side by side.
-for udid in "${devices[@]}"; do
-  xcrun simctl bootstatus "$udid"
+  xcrun simctl bootstatus "$udid" -b
   xcrun simctl status_bar "$udid" override --time 9:41 --dataNetwork wifi \
     --wifiMode active --wifiBars 3 --cellularMode active --cellularBars 4 \
     --batteryState charged --batteryLevel 100
-done
 
-# xcodebuild passes TEST_RUNNER_-prefixed variables to the tests, minus
-# the prefix.
-results=build/ScreenshotResults.xcresult
-rm -rf "$results"
-if ! TEST_RUNNER_SCREENSHOTS_DIR="$out" xcodebuild test \
-  -project JustASimpleDice.xcodeproj \
-  -scheme JustASimpleDice \
-  "${destinations[@]}" \
-  -derivedDataPath build \
-  -resultBundlePath "$results" \
-  -only-testing:JustASimpleDiceUITests/RollUITests/testCaptureStoreScreenshots \
-  CODE_SIGNING_ALLOWED=NO; then
-  # With several destinations, xcodebuild's log leaves out why tests failed.
-  xcrun xcresulttool get test-results summary --path "$results" >&2 || true
-  exit 1
-fi
+  # xcodebuild passes TEST_RUNNER_-prefixed variables to the tests, minus
+  # the prefix.
+  TEST_RUNNER_SCREENSHOTS_DIR="$out" xcodebuild test \
+    -project JustASimpleDice.xcodeproj \
+    -scheme JustASimpleDice \
+    -destination "platform=iOS Simulator,id=$udid" \
+    -derivedDataPath build \
+    -resultBundlePath "$results/$type.xcresult" \
+    -only-testing:JustASimpleDiceUITests/RollUITests/testCaptureStoreScreenshots \
+    -retry-tests-on-failure -test-iterations 2 \
+    CODE_SIGNING_ALLOWED=NO
+
+  cleanup
+done
 
 count=$(find "$out" -name '*.png' | wc -l | tr -d ' ')
 if [ "$count" -ne 4 ]; then
