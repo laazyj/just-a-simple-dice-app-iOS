@@ -54,13 +54,20 @@ done
 
 # xcodebuild passes TEST_RUNNER_-prefixed variables to the tests, minus
 # the prefix.
-TEST_RUNNER_SCREENSHOTS_DIR="$out" xcodebuild test \
+results=build/ScreenshotResults.xcresult
+rm -rf "$results"
+if ! TEST_RUNNER_SCREENSHOTS_DIR="$out" xcodebuild test \
   -project JustASimpleDice.xcodeproj \
   -scheme JustASimpleDice \
   "${destinations[@]}" \
   -derivedDataPath build \
+  -resultBundlePath "$results" \
   -only-testing:JustASimpleDiceUITests/RollUITests/testCaptureStoreScreenshots \
-  CODE_SIGNING_ALLOWED=NO
+  CODE_SIGNING_ALLOWED=NO; then
+  # With several destinations, xcodebuild's log leaves out why tests failed.
+  xcrun xcresulttool get test-results summary --path "$results" >&2 || true
+  exit 1
+fi
 
 count=$(find "$out" -name '*.png' | wc -l | tr -d ' ')
 if [ "$count" -ne 4 ]; then
