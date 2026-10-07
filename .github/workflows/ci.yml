@@ -159,6 +159,86 @@ jobs:
             TestResults.xcresult
             build/ScreenshotResults
 
+  # Shows a PR's App Store screenshots in a comment. The API can't attach
+  # images to comments, so they're pushed to the pr-screenshots branch (no
+  # shared history with main) and linked from there. Fork and Dependabot
+  # PRs get a read-only token, so they're skipped.
+  screenshots-comment:
+    name: Comment screenshots
+    needs: build
+    if: >-
+      github.event_name == 'pull_request'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read # to download this run's screenshots
+      contents: write # to push them to pr-screenshots
+      pull-requests: write # to comment
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ github.event.pull_request.number }}
+      SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Download the screenshots
+        run: >-
+          gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY"
+          --name app-store-screenshots --dir shots
+
+      - name: Push them to pr-screenshots
+        run: |
+          gh auth setup-git
+          git init -q pages && cd pages
+          git remote add origin "https://github.com/$GITHUB_REPOSITORY.git"
+          if git fetch -q --depth 1 origin pr-screenshots; then
+            git checkout -q -b pr-screenshots FETCH_HEAD
+          else
+            git checkout -q --orphan pr-screenshots
+          fi
+          # Keep only this PR's latest set; the SHA in the path stops
+          # browsers showing a cached older image.
+          git rm -rq --ignore-unmatch "pr-$PR"
+          mkdir -p "pr-$PR/$SHA"
+          cp ../shots/*.png "pr-$PR/$SHA/"
+          git add .
+          # A re-run of the same commit has nothing new to push.
+          git diff --cached --quiet && exit 0
+          git -c user.name="github-actions[bot]" \
+            -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Screenshots for #$PR at $SHA"
+          # Another PR's run may have pushed in the meantime.
+          for _ in 1 2 3; do
+            git push -q origin HEAD:pr-screenshots && exit 0
+            git pull -q --rebase origin pr-screenshots
+          done
+          exit 1
+
+      - name: Comment on the PR
+        run: |
+          base="https://raw.githubusercontent.com/$GITHUB_REPOSITORY/pr-screenshots/pr-$PR/$SHA"
+          marker="<!-- app-store-screenshots -->"
+          {
+            echo "$marker"
+            echo "### App Store screenshots"
+            echo "From ${SHA:0:7}; the release uploads these from its own run."
+            # Files are <scene>-<device>.png: one row of scenes per device.
+            for device in $(ls shots | sed -E 's/^[^-]+-(.*)\.png$/\1/' | sort -u); do
+              printf '\n**%s**\n\n' "$device"
+              for file in shots/*-"$device".png; do
+                printf '<img src="%s/%s" width="220" alt="%s"> ' "$base" "${file#shots/}" "${file#shots/}"
+              done
+              echo
+            done
+          } > comment.md
+          # Update this job's earlier comment rather than adding another.
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n 1)
+          if [ -n "$id" ]; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -F body=@comment.md >/dev/null
+          else
+            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file comment.md
+          fi
+
   # Every push to main that passes CI goes to internal TestFlight testers.
   testflight:
     name: Upload to TestFlight
