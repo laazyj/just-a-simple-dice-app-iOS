@@ -222,7 +222,7 @@ jobs:
             echo "### App Store screenshots"
             echo "From ${SHA:0:7}; the release uploads these from its own run."
             # Files are <scene>-<device>.png: one row of scenes per device.
-            for device in $(ls shots | sed -E 's/^[^-]+-(.*)\.png$/\1/' | sort -u); do
+            for device in $(printf '%s\n' shots/*.png | sed -E 's|^shots/[^-]+-(.*)\.png$|\1|' | sort -u); do
               printf '\n**%s**\n\n' "$device"
               for file in shots/*-"$device".png; do
                 printf '<img src="%s/%s" width="220" alt="%s"> ' "$base" "${file#shots/}" "${file#shots/}"
