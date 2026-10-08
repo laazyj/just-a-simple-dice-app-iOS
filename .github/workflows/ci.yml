@@ -288,7 +288,7 @@ jobs:
 
   # Keeps a release PR open that bumps the version and changelog from the
   # Conventional Commit titles merged since the last release. Merging that
-  # PR tags the release here.
+  # PR tags the release, and the tagged commit's own run submits it.
   release-please:
     name: Release PR
     needs: [swiftlint, actionlint, zizmor, gitleaks, build]
@@ -298,24 +298,46 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      version: ${{ steps.release.outputs.version }}
-      notes: ${{ steps.release.outputs.body }}
+      version: ${{ steps.tagged.outputs.version }}
+      notes: ${{ steps.tagged.outputs.notes }}
     steps:
-      - id: release
-        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           # PRs opened with the default token don't trigger CI, so required
           # checks would never report on the release PR. A fine-grained PAT
           # (contents + pull requests: write) avoids that.
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
 
+      # Submit only from the run of the commit the release tag points at:
+      # its TestFlight build is that version. release-please acts on main's
+      # latest commit, so with merges close together the release can be
+      # created in an earlier commit's run, whose build is the old version.
+      - id: tagged
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(gh api -H 'Accept: application/vnd.github.raw' \
+            "repos/$GITHUB_REPOSITORY/contents/Configuration/Version.xcconfig?ref=$GITHUB_SHA" \
+            | sed -n 's/^MARKETING_VERSION = //p')
+          tag_commit=$(gh api "repos/$GITHUB_REPOSITORY/commits/v$version" --jq .sha 2>/dev/null || true)
+          if [ "$tag_commit" != "$GITHUB_SHA" ]; then
+            echo "v$version isn't tagged at this commit; nothing to submit."
+            exit 0
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          delimiter="notes_$(openssl rand -hex 8)"
+          {
+            echo "notes<<$delimiter"
+            gh release view "v$version" --repo "$GITHUB_REPOSITORY" --json body --jq .body
+            echo "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+
   # A release commit's TestFlight build, once a reviewer approves the
   # app-store environment, goes to App Review with a phased release.
   submit:
     name: Submit for App Review
     needs: [testflight, release-please]
-    if: needs.release-please.outputs.release_created == 'true'
+    if: needs.release-please.outputs.version != ''
     runs-on: ubuntu-latest
     environment: app-store
     permissions:
