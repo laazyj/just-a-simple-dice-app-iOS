@@ -50,7 +50,7 @@ jobs:
           persist-credentials: false
       # Without Advanced Security the action fails the job on findings,
       # matching the other lint jobs, instead of uploading SARIF.
-      - uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+      - uses: zizmorcore/zizmor-action@85b2b9fb8e3325e7a23d7d0a9d7ba5ae0f999e3e # v0.7.1
         with:
           advanced-security: false
 
@@ -143,7 +143,7 @@ jobs:
           xcrun simctl shutdown all
           scripts/capture-screenshots.sh build/app-store-screenshots
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: app-store-screenshots
           path: build/app-store-screenshots
@@ -152,7 +152,7 @@ jobs:
       # accessibility audit's findings.
       - name: Upload test results
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: test-results
           path: |
@@ -272,7 +272,7 @@ jobs:
 
       # No bundler-cache: caches restored into a job that publishes builds
       # are a cache-poisoning risk.
-      - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
+      - uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
 
       - name: Build and upload
         id: upload
@@ -348,7 +348,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
+      - uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
 
       - name: Download the App Store screenshots
         env:
