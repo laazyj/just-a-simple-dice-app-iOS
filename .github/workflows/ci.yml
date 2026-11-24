@@ -39,7 +39,7 @@ jobs:
       - name: Lint GitHub Actions workflows
         # Maintained fork of rhysd/actionlint that parses the self-repository
         # syntax (uses: $/...) zizmor requires; see CONTRIBUTING.md.
-        uses: kjanat/actionlint@08bb2c4f0d039744455b87aef1c647fb8b66d37b # v1.17.0
+        uses: kjanat/actionlint@220b76cfa568e00ed8b3c476898f849a722b88e2 # v1.17.1
 
   zizmor:
     name: Audit workflows
@@ -50,7 +50,7 @@ jobs:
           persist-credentials: false
       # Without Advanced Security the action fails the job on findings,
       # matching the other lint jobs, instead of uploading SARIF.
-      - uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
+      - uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
         with:
           advanced-security: false
 
@@ -272,7 +272,7 @@ jobs:
 
       # No bundler-cache: caches restored into a job that publishes builds
       # are a cache-poisoning risk.
-      - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1.335.0
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
 
       - name: Build and upload
         id: upload
@@ -348,7 +348,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1.335.0
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
 
       - name: Download the App Store screenshots
         env:
